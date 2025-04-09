@@ -1,4 +1,4 @@
-class NotificationProvider {
+export default class NotificationProvider {
 
     send(notification) {
         // Logic to send notification
