@@ -1,0 +1,213 @@
+openapi: 3.0.3
+info:
+  title: Notification API
+  version: "1.0.0"
+  description: API for sending, retrieving, and deleting notifications.
+servers:
+  - url: http://localhost:3000
+paths:
+  /notification:
+    get:
+      summary: Retrieve all notifications.
+      description: Returns a list of notifications.
+      parameters:
+        - in: query
+          name: providerId
+          required: true
+          schema:
+            type: string
+          description: Provider identifier.
+      responses:
+        '200':
+          description: Successfully retrieved notifications.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+        '400':
+          description: Bad Request – providerId is required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Send a notification.
+      description: Sends a notification using a specific template.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                templateId:
+                  type: string
+                  description: Identifier for the notification template.
+                to:
+                  type: string
+                  description: Recipient address.
+                variables:
+                  type: object
+                  description: Values for template variables.
+                  additionalProperties: true
+                channel:
+                  type: string
+                  description: The channel to use for sending. Must be "email".
+              required:
+                - templateId
+                - to
+      responses:
+        '200':
+          description: Notification sent successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          description: Bad Request – Missing required fields or unsupported channel.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a notification.
+      description: Deletes a specified notification.
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Notification unique identifier.
+        - in: query
+          name: providerId
+          required: true
+          schema:
+            type: string
+          description: Provider identifier.
+      responses:
+        '200':
+          description: Notification deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Notification deleted successfully
+        '400':
+          description: Bad Request – Missing id or providerId.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Notification not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /notification/custom:
+    post:
+      summary: Send a custom notification.
+      description: Sends a custom Bitcoin price update notification.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                to:
+                  type: string
+                  description: Recipient email address.
+                variables:
+                  type: object
+                  description: Additional template variables.
+                  additionalProperties: true
+              required:
+                - to
+      responses:
+        '200':
+          description: Custom notification sent successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          description: Bad Request – Missing required fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Notification:
+      type: object
+      description: Represents a notification record.
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the notification.
+        subject:
+          type: string
+          description: Subject of the notification.
+        message:
+          type: string
+          description: Notification message content.
+        type:
+          type: string
+          description: Type of notification.
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the notification was created.
+        to:
+          type: string
+          description: Recipient's contact address.
+        channelId:
+          type: string
+          description: Identifier for the notification channel.
+        status:
+          type: string
+          description: Current status of the notification.
+        latency:
+          type: number
+          description: Latency (in milliseconds) for notification processing.
+    Error:
+      type: object
+      description: Error response structure.
+      properties:
+        message:
+          type: string
+          description: Detailed error message.
